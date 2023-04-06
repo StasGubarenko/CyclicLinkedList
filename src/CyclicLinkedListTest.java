@@ -1,32 +1,72 @@
-import com.sun.source.tree.AssertTree;
-import org.junit.Assert;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
-import java.io.PrintWriter;
-import java.util.Comparator;
 import java.util.NoSuchElementException;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class CyclicLinkedListTest {
 
-    @Test
-    @DisplayName("Проверка добавления элемента в список при изначально пустом листе")
-    public void addElementInCycleList() {
-        CyclicLinkedList<Integer> cyclicLinkedList = new CyclicLinkedList<>();
-        cyclicLinkedList.add(1);
-        Assertions.assertEquals(1, cyclicLinkedList.getLastElement());
-    }
 
     @Test
     @DisplayName("Проверка добавления элемента в конец списка")
-    public void addElementInTheEndOfCycleList() {
+    public void addElementTest() {
         CyclicLinkedList<Integer> cyclicLinkedList = new CyclicLinkedList<>();
+
         cyclicLinkedList.add(1);
         cyclicLinkedList.add(2);
-        Assertions.assertEquals(2, cyclicLinkedList.getLastElement());
+        cyclicLinkedList.add(3);
+        cyclicLinkedList.add(4);
+
+        int[] expectedArray = {1, 2, 3, 4};
+
+        Assertions.assertAll(() -> {
+            for (int i = 0; i < expectedArray.length; i++) {
+                if (expectedArray[i] != cyclicLinkedList.get(i)) {
+                    throw new RuntimeException();
+                }
+            }
+        });
+    }
+
+    @Test
+    @DisplayName("Проверка получение элемента по отрицательному индексу")
+    public void checkGetElementByNegativeIndex() {
+        CyclicLinkedList<Integer> cyclicLinkedList = new CyclicLinkedList<>();
+
+        IndexOutOfBoundsException actualException = Assertions.assertThrows(IndexOutOfBoundsException.class, () ->
+                cyclicLinkedList.get(-1));
+
+        assertEquals("index: -1 size 0", actualException.getMessage());
+    }
+
+    @Test
+    @DisplayName("Проверка получение элемента по некорректному индексу")
+    public void checkGetElementByIncorrectIndex() {
+        CyclicLinkedList<Integer> cyclicLinkedList = new CyclicLinkedList<>();
+
+        IndexOutOfBoundsException actualException = Assertions.assertThrows(IndexOutOfBoundsException.class, () ->
+                cyclicLinkedList.get(0));
+
+        assertEquals("index: 0 size 0", actualException.getMessage());
+    }
+
+    @Test
+    @DisplayName("Проверка получение элемента по некорректному индексу")
+    public void checkGetElementByIncorrectIndexMore() {
+        CyclicLinkedList<Integer> cyclicLinkedList = new CyclicLinkedList<>();
+        cyclicLinkedList.add(0);
+        cyclicLinkedList.add(0);
+        cyclicLinkedList.add(0);
+
+        IndexOutOfBoundsException actualException = Assertions.assertThrows(IndexOutOfBoundsException.class, () ->
+                cyclicLinkedList.get(4));
+
+        assertEquals("index: 4 size 3", actualException.getMessage());
     }
 
     @Test
@@ -36,7 +76,14 @@ class CyclicLinkedListTest {
         cyclicLinkedList.add(1);
         cyclicLinkedList.add(2);
         cyclicLinkedList.add(0, 0);
-        Assertions.assertEquals(0, cyclicLinkedList.getFirstElement());
+
+        int[] expectedArray = {0, 1, 2};
+
+        for (int i = 0; i < expectedArray.length; i++) {
+            Assertions.assertEquals(expectedArray[i], cyclicLinkedList.get(i));
+        }
+
+        Assertions.assertEquals(3,cyclicLinkedList.size());
     }
 
     @Test
@@ -48,12 +95,14 @@ class CyclicLinkedListTest {
         cyclicLinkedList.add(3);
         cyclicLinkedList.add(4);
         cyclicLinkedList.add(2, 5);
-        Assertions.assertEquals(5, cyclicLinkedList.get(2));
-        Assertions.assertEquals(1, cyclicLinkedList.get(0));
-        Assertions.assertEquals(2, cyclicLinkedList.get(1));
-        Assertions.assertEquals(3, cyclicLinkedList.get(3));
-        Assertions.assertEquals(4, cyclicLinkedList.get(4));
 
+        int[] expectedArray = {1, 2, 5, 3, 4};
+
+        for (int i = 0; i < expectedArray.length; i++) {
+            Assertions.assertEquals(expectedArray[i], cyclicLinkedList.get(i));
+        }
+
+        Assertions.assertEquals(5, cyclicLinkedList.size());
     }
 
     @Test
@@ -66,6 +115,28 @@ class CyclicLinkedListTest {
         cyclicLinkedList.add(4);
 
         cyclicLinkedList.add(4, 99);
+
+        int[] expectedArray = {1, 2, 3, 4, 99};
+
+        for (int i = 0; i < expectedArray.length; i++) {
+            Assertions.assertEquals(expectedArray[i], cyclicLinkedList.get(i));
+        }
+
+        Assertions.assertEquals(5, cyclicLinkedList.size());
+    }
+
+    @Test
+    @DisplayName("Проверка добавление элемента в пустой список")
+    public void addElementInTheEmptyList() {
+        CyclicLinkedList<Integer> cyclicLinkedList = new CyclicLinkedList<>();
+        cyclicLinkedList.add(0, 99);
+
+        int[] expectedArray = {99};
+
+        for (int i = 0; i < expectedArray.length; i++) {
+            Assertions.assertEquals(expectedArray[i], cyclicLinkedList.get(i));
+        }
+        Assertions.assertEquals(1, cyclicLinkedList.size());
     }
 
     @Test
@@ -74,24 +145,25 @@ class CyclicLinkedListTest {
         CyclicLinkedList<Integer> cyclicLinkedList = new CyclicLinkedList<>();
         cyclicLinkedList.add(1);
         cyclicLinkedList.add(2);
-        try {
-            cyclicLinkedList.add(-1, 6);
-        } catch (IndexOutOfBoundsException thrown) {
-            assertEquals("index : -1 size : 2", thrown.getMessage());
-        }
+
+        IndexOutOfBoundsException actualException = Assertions.assertThrows(IndexOutOfBoundsException.class, () ->
+                cyclicLinkedList.add(-1,6));
+
+        assertEquals("index : -1 size : 2", actualException.getMessage());
+
     }
 
     @Test
     @DisplayName("Проверка срабатывания исключения при индексе больше чем размер списка")
-    public void throwsExceptionWhenIndexIsGreaterThenSizeOfList() throws IndexOutOfBoundsException {
+    public void throwsExceptionWhenIndexIsGreaterThenSizeOfList() {
         CyclicLinkedList<Integer> cyclicLinkedList = new CyclicLinkedList<>();
+
         cyclicLinkedList.add(1);
         cyclicLinkedList.add(2);
-        try {
-            cyclicLinkedList.add(3, 6);
-        } catch (IndexOutOfBoundsException thrown) {
-            assertEquals("index : 3 size : 2", thrown.getMessage());
-        }
+
+        IndexOutOfBoundsException actualException = Assertions.assertThrows(IndexOutOfBoundsException.class, () ->
+                cyclicLinkedList.add(3,3));
+        assertEquals("index : 3 size : 2", actualException.getMessage());
     }
 
     @Test
@@ -107,10 +179,15 @@ class CyclicLinkedListTest {
 
         cyclicLinkedList.addAll(0, cyclicLinkedList1);
 
-        Assertions.assertEquals(3, cyclicLinkedList.get(0));
-        Assertions.assertEquals(4, cyclicLinkedList.get(1));
-        Assertions.assertEquals(1, cyclicLinkedList.get(2));
-        Assertions.assertEquals(2, cyclicLinkedList.get(3));
+        int[] arrays = {3, 4, 1, 2};
+
+        for(int i = 0; i < arrays.length; i++){
+            if(cyclicLinkedList.get(i) != arrays[i]){
+                throw new RuntimeException();
+            }
+        }
+
+        Assertions.assertEquals(4, cyclicLinkedList.size());
     }
 
     @Test
@@ -122,27 +199,19 @@ class CyclicLinkedListTest {
 
         cyclicLinkedList.addAll(0, cyclicLinkedList);
 
-        Assertions.assertEquals(1, cyclicLinkedList.get(0));
-        Assertions.assertEquals(2, cyclicLinkedList.get(1));
-        Assertions.assertEquals(1, cyclicLinkedList.get(2));
-        Assertions.assertEquals(2, cyclicLinkedList.get(3));
+        int[] arrays = {1, 2, 1, 2};
+
+        for(int i = 0; i < arrays.length; i++){
+            if(cyclicLinkedList.get(i) != arrays[i]){
+                throw new RuntimeException();
+            }
+        }
+
+        Assertions.assertEquals(4, cyclicLinkedList.size());
     }
 
     @Test
-    @DisplayName("Проверка получения последнего элемента из списка")
-    public void checkGetLastElement() {
-        CyclicLinkedList<Integer> cyclicLinkedList = new CyclicLinkedList<>();
-
-        cyclicLinkedList.add(1);
-        cyclicLinkedList.add(2);
-        cyclicLinkedList.add(3);
-
-        Assertions.assertEquals(3, cyclicLinkedList.get(2));
-
-    }
-
-    @Test
-    @DisplayName("Проверка срабатвания исключения при попытке получить последний элемент из списка")
+    @DisplayName("Проверка срабатывания исключения при попытке получить последний элемент из списка")
     public void throwsNoSuchElementException() throws NoSuchElementException {
         CyclicLinkedList<Integer> cyclicLinkedList = new CyclicLinkedList<>();
 
@@ -194,247 +263,23 @@ class CyclicLinkedListTest {
         cyclicLinkedList.clear();
 
         Assertions.assertEquals(0, cyclicLinkedList.size());
+
     }
 
     @Test
     @DisplayName("Проверка получение элемента по невалидному индексу")
-    public void checkGetElementByInvalidIndex() throws IndexOutOfBoundsException {
+    public void checkGetElementByInvalidIndex() {
         CyclicLinkedList<Integer> cyclicLinkedList = new CyclicLinkedList<>();
 
         cyclicLinkedList.add(3);
         cyclicLinkedList.add(4);
         cyclicLinkedList.add(5);
 
-        try {
-            cyclicLinkedList.get(3);
-        } catch (IndexOutOfBoundsException thrown) {
-            assertEquals("index: 3 size 3", thrown.getMessage());
-        }
-    }
-
-    @Test
-    @DisplayName("Проверка получение элемента по отрицательному индексу")
-    public void checkGetElementByNegativeIndex() throws Exception {
-        CyclicLinkedList<Integer> cyclicLinkedList = new CyclicLinkedList<>();
-
-        cyclicLinkedList.add(3);
-        cyclicLinkedList.add(4);
-        cyclicLinkedList.add(5);
-
-        try {
-            cyclicLinkedList.get(-1);
-        } catch (IndexOutOfBoundsException thrown) {
-            assertEquals("index: -1 size 3", thrown.getMessage());
-        }
-    }
-
-    @Test
-    @DisplayName("Получение элемента по 1 индексу")
-    public void getFirstElementInTheList() {
-        CyclicLinkedList<Integer> cyclicLinkedList = new CyclicLinkedList<>();
-
-        cyclicLinkedList.add(43);
-        cyclicLinkedList.add(45355);
-        cyclicLinkedList.add(44);
-
-        Assertions.assertEquals(43, cyclicLinkedList.get(0));
-    }
-
-    @Test
-    @DisplayName("Получение элемента по рандомному индексу")
-    public void getElementByRandomIndex() {
-        CyclicLinkedList<Integer> cyclicLinkedList = new CyclicLinkedList<>();
-
-        cyclicLinkedList.add(43);
-        cyclicLinkedList.add(1);
-        cyclicLinkedList.add(5);
-        cyclicLinkedList.add(9);
-        cyclicLinkedList.add(7);
-        cyclicLinkedList.add(3);
-
-        Assertions.assertEquals(1, cyclicLinkedList.get(1));
-        Assertions.assertEquals(5, cyclicLinkedList.get(2));
+        IndexOutOfBoundsException actualException = Assertions.assertThrows(IndexOutOfBoundsException.class, () ->
+                cyclicLinkedList.get(3));
+        assertEquals("index : 3 size : 3", actualException.getMessage());
 
     }
-
-    @Test
-    @DisplayName("Получение элемента по последнему индексу")
-    public void getElementByLastIndex() {
-        CyclicLinkedList<Integer> cyclicLinkedList = new CyclicLinkedList<>();
-
-        cyclicLinkedList.add(43);
-        cyclicLinkedList.add(1);
-        cyclicLinkedList.add(5);
-        cyclicLinkedList.add(9);
-        cyclicLinkedList.add(7);
-        cyclicLinkedList.add(3);
-
-        Assertions.assertEquals(3, cyclicLinkedList.get(5));
-    }
-
-    @Test
-    @DisplayName("Проверка размера листа")
-    public void checkSize() {
-        CyclicLinkedList<Integer> cyclicLinkedList = new CyclicLinkedList<>();
-
-        cyclicLinkedList.add(43);
-        cyclicLinkedList.add(1);
-        cyclicLinkedList.add(5);
-        cyclicLinkedList.add(9);
-        cyclicLinkedList.add(7);
-        cyclicLinkedList.add(3);
-
-        Assertions.assertEquals(6, cyclicLinkedList.size());
-
-    }
-
-    @Test
-    @DisplayName("Проверка размера листа после добавления элемента в начало списка")
-    public void checkTheSizeOfTheListWhenAddingElementInTheBeggingOfTheList() {
-        CyclicLinkedList<Integer> cyclicLinkedList = new CyclicLinkedList<>();
-
-        cyclicLinkedList.add(10);
-        cyclicLinkedList.add(20);
-        cyclicLinkedList.add(30);
-        cyclicLinkedList.add(0, 2323);
-
-        Assertions.assertEquals(4, cyclicLinkedList.size());
-    }
-
-    @Test
-    @DisplayName("Проверка размера листа после добавления элемента в конец списка")
-    public void checkTheSizeOfTheListWhenAddingElementInTheEndOfTheList() {
-        CyclicLinkedList<Integer> cyclicLinkedList = new CyclicLinkedList<>();
-
-        cyclicLinkedList.add(10);
-        cyclicLinkedList.add(20);
-        cyclicLinkedList.add(30);
-        cyclicLinkedList.add(3, 2323);
-
-        Assertions.assertEquals(4, cyclicLinkedList.size());
-    }
-
-    @Test
-    @DisplayName("Проверка размера листа после добавления элемента в рандомное место по индексу")
-    public void checkTheSizeOfTheListWhenAddingElementIsRandomly() {
-        CyclicLinkedList<Integer> cyclicLinkedList = new CyclicLinkedList<>();
-
-        cyclicLinkedList.add(10);
-        cyclicLinkedList.add(20);
-        cyclicLinkedList.add(30);
-        cyclicLinkedList.add(40);
-        cyclicLinkedList.add(50);
-        cyclicLinkedList.add(60);
-
-        cyclicLinkedList.add(3, 2323);
-
-        Assertions.assertEquals(7, cyclicLinkedList.size());
-    }
-
-    @Test
-    @DisplayName("Проверка размера листа после добавления нового листа к существующему")
-    public void checkTheSizeOfTheListWhenAddingNewListByIndex() {
-        CyclicLinkedList<Integer> cyclicLinkedList = new CyclicLinkedList<>();
-
-        cyclicLinkedList.add(10);
-        cyclicLinkedList.add(20);
-        cyclicLinkedList.add(30);
-
-        CyclicLinkedList<Integer> cyclicLinkedList1 = new CyclicLinkedList<>();
-
-        cyclicLinkedList1.add(10);
-        cyclicLinkedList1.add(20);
-        cyclicLinkedList1.add(30);
-
-        cyclicLinkedList.addAll(0, cyclicLinkedList1);
-
-        Assertions.assertEquals(6, cyclicLinkedList.size());
-    }
-
-    @Test
-    @DisplayName("Проверка размера листа после удаления элемента в начале списка")
-    public void checkTheSizeOfTheListWhenRemovingElementInTheBeggingOfTheList() {
-        CyclicLinkedList<Integer> cyclicLinkedList = new CyclicLinkedList<>();
-
-        cyclicLinkedList.add(10);
-        cyclicLinkedList.add(20);
-        cyclicLinkedList.add(30);
-
-        cyclicLinkedList.remove(0);
-
-        Assertions.assertEquals(2, cyclicLinkedList.size());
-    }
-
-    @Test
-    @DisplayName("Проверка размера листа после удаления элемента в конце списка")
-    public void checkTheSizeOfTheListWhenRemovingElementInTheEndOfTheList() {
-        CyclicLinkedList<Integer> cyclicLinkedList = new CyclicLinkedList<>();
-
-        cyclicLinkedList.add(10);
-        cyclicLinkedList.add(20);
-        cyclicLinkedList.add(30);
-
-        cyclicLinkedList.remove(2);
-
-        Assertions.assertEquals(2, cyclicLinkedList.size());
-    }
-
-    @Test
-    @DisplayName("Проверка размера листа после удаления элемента в рандомном месте списка")
-    public void checkTheSizeOfTheListWhenRemovingElementInTheRandomPlaceOfTheList() {
-        CyclicLinkedList<Integer> cyclicLinkedList = new CyclicLinkedList<>();
-
-        cyclicLinkedList.add(10);
-        cyclicLinkedList.add(20);
-        cyclicLinkedList.add(30);
-
-        cyclicLinkedList.remove(1);
-
-        Assertions.assertEquals(2, cyclicLinkedList.size());
-    }
-
-    @Test
-    @DisplayName("Проверка размера листа после замены элемента в начале списка")
-    public void checkTheSizeOfTheListWhenChangingElementInTheBeggingOfTheList() {
-        CyclicLinkedList<Integer> cyclicLinkedList = new CyclicLinkedList<>();
-
-        cyclicLinkedList.add(10);
-        cyclicLinkedList.add(20);
-        cyclicLinkedList.add(30);
-
-        cyclicLinkedList.set(0, 1);
-
-        Assertions.assertEquals(3, cyclicLinkedList.size());
-    }
-
-    @Test
-    @DisplayName("Проверка размера листа после замены элемента в конце списка")
-    public void checkTheSizeOfTheListWhenChangingElementInTheEndOfTheList() {
-        CyclicLinkedList<Integer> cyclicLinkedList = new CyclicLinkedList<>();
-
-        cyclicLinkedList.add(10);
-        cyclicLinkedList.add(20);
-        cyclicLinkedList.add(30);
-
-        cyclicLinkedList.set(2, 1);
-
-        Assertions.assertEquals(3, cyclicLinkedList.size());
-    }
-
-    @Test
-    @DisplayName("Проверка размера листа после замены элемента в рандомном месте списка")
-    public void checkTheSizeOfTheListWhenChangingElementInTheRandomPlaceOfTheList() {
-        CyclicLinkedList<Integer> cyclicLinkedList = new CyclicLinkedList<>();
-
-        cyclicLinkedList.add(10);
-        cyclicLinkedList.add(20);
-        cyclicLinkedList.add(30);
-
-        cyclicLinkedList.set(1, 1);
-
-        Assertions.assertEquals(3, cyclicLinkedList.size());
-    }
-
 
     @Test
     @DisplayName("Проверка наличия первого элемента в списке")
@@ -508,6 +353,18 @@ class CyclicLinkedListTest {
         cyclicLinkedList.add(4);
 
         Assertions.assertEquals(1, cyclicLinkedList.remove(0));
+
+        int[] expectedArray = {2, 3, 4};
+
+        Assertions.assertAll(() -> {
+            for (int i = 0; i < expectedArray.length; i++) {
+                if (expectedArray[i] != cyclicLinkedList.get(i)) {
+                    throw new RuntimeException();
+                }
+            }
+        });
+
+        Assertions.assertEquals(3, cyclicLinkedList.size());
     }
 
     @Test
@@ -521,6 +378,18 @@ class CyclicLinkedListTest {
         cyclicLinkedList.add(4);
 
         Assertions.assertEquals(4, cyclicLinkedList.remove(3));
+
+        int[] expectedArray = {1, 2, 3};
+
+        Assertions.assertAll(() -> {
+            for (int i = 0; i < expectedArray.length; i++) {
+                if (expectedArray[i] != cyclicLinkedList.get(i)) {
+                    throw new RuntimeException();
+                }
+            }
+        });
+
+        Assertions.assertEquals(3, cyclicLinkedList.size());
     }
 
     @Test
@@ -534,6 +403,18 @@ class CyclicLinkedListTest {
         cyclicLinkedList.add(4);
 
         Assertions.assertEquals(3, cyclicLinkedList.remove(2));
+
+        int[] expectedArray = {1, 2, 4};
+
+        Assertions.assertAll(() -> {
+            for (int i = 0; i < expectedArray.length; i++) {
+                if (expectedArray[i] != cyclicLinkedList.get(i)) {
+                    throw new RuntimeException();
+                }
+            }
+        });
+
+        Assertions.assertEquals(3, cyclicLinkedList.size());
     }
 
     @Test
@@ -547,7 +428,17 @@ class CyclicLinkedListTest {
 
         cyclicLinkedList.set(0, 1);
 
-        Assertions.assertEquals(1, cyclicLinkedList.getFirstElement());
+
+        int[] expectedArray = {1, 20, 30};
+
+        Assertions.assertAll(() -> {
+            for (int i = 0; i < expectedArray.length; i++) {
+                if (expectedArray[i] != cyclicLinkedList.get(i)) {
+                    throw new RuntimeException();
+                }
+            }
+        });
+
     }
 
     @Test
@@ -561,7 +452,15 @@ class CyclicLinkedListTest {
 
         cyclicLinkedList.set(2, 1);
 
-        Assertions.assertEquals(1, cyclicLinkedList.getLastElement());
+        int[] expectedArray = {10, 20, 1};
+
+        Assertions.assertAll(() -> {
+            for (int i = 0; i < expectedArray.length; i++) {
+                if (expectedArray[i] != cyclicLinkedList.get(i)) {
+                    throw new RuntimeException();
+                }
+            }
+        });
     }
 
     @Test
@@ -575,7 +474,15 @@ class CyclicLinkedListTest {
 
         cyclicLinkedList.set(1, 1);
 
-        Assertions.assertEquals(1, cyclicLinkedList.get(1));
+        int[] expectedArray = {10, 1, 30};
+
+        Assertions.assertAll(() -> {
+            for (int i = 0; i < expectedArray.length; i++) {
+                if (expectedArray[i] != cyclicLinkedList.get(i)) {
+                    throw new RuntimeException();
+                }
+            }
+        });
     }
 
     @Test
@@ -596,9 +503,15 @@ class CyclicLinkedListTest {
 
         CyclicLinkedList<Integer> actual = cyclicLinkedList.subList(0, 3);
 
-        Assertions.assertEquals(1, actual.get(0));
-        Assertions.assertEquals(2, actual.get(1));
-        Assertions.assertEquals(3, actual.get(2));
+        int[] expectedArray = {1, 2, 3};
+
+        Assertions.assertAll(() -> {
+            for (int i = 0; i < expectedArray.length; i++) {
+                if (expectedArray[i] != actual.get(i)) {
+                    throw new RuntimeException();
+                }
+            }
+        });
 
         assertThrows(IndexOutOfBoundsException.class, () -> actual.get(3));
 
@@ -623,8 +536,15 @@ class CyclicLinkedListTest {
 
         CyclicLinkedList<Integer> actual = cyclicLinkedList.subList(7, 9);
 
-        Assertions.assertEquals(8, actual.get(0));
-        Assertions.assertEquals(9, actual.get(1));
+        int[] expectedArray = {8, 9};
+
+        Assertions.assertAll(() -> {
+            for (int i = 0; i < expectedArray.length; i++) {
+                if (expectedArray[i] != actual.get(i)) {
+                    throw new RuntimeException();
+                }
+            }
+        });
 
 
         assertThrows(IndexOutOfBoundsException.class, () -> actual.get(2));
@@ -649,9 +569,15 @@ class CyclicLinkedListTest {
 
         CyclicLinkedList<Integer> actual = cyclicLinkedList.subList(7, 10);
 
-        Assertions.assertEquals(8, actual.get(0));
-        Assertions.assertEquals(9, actual.get(1));
-        Assertions.assertEquals(10, actual.get(2));
+        int[] expectedArray = {8, 9, 10};
+
+        Assertions.assertAll(() -> {
+            for (int i = 0; i < expectedArray.length; i++) {
+                if (expectedArray[i] != actual.get(i)) {
+                    throw new RuntimeException();
+                }
+            }
+        });
 
 
         assertThrows(IndexOutOfBoundsException.class, () -> actual.get(3));
@@ -733,16 +659,15 @@ class CyclicLinkedListTest {
 
         cyclicLinkedList.addAll(0, cyclicLinkedList1);
 
-        CyclicLinkedList<Integer> actual = new CyclicLinkedList<>();
+        int[] expectedArray = {4, 5, 6, 1, 2, 3};
 
-        actual.add(4);
-        actual.add(5);
-        actual.add(6);
-        actual.add(1);
-        actual.add(2);
-        actual.add(3);
-
-        Assertions.assertEquals(cyclicLinkedList.toString(), actual.toString());
+        Assertions.assertAll(() -> {
+            for (int i = 0; i < expectedArray.length; i++) {
+                if (expectedArray[i] != cyclicLinkedList.get(i)) {
+                    throw new RuntimeException();
+                }
+            }
+        });
     }
 
     @Test
@@ -771,7 +696,15 @@ class CyclicLinkedListTest {
         actual.add(5);
         actual.add(6);
 
-        Assertions.assertEquals(cyclicLinkedList.toString(), actual.toString());
+        int[] expectedArray = {1, 2, 3, 4, 5, 6};
+
+        Assertions.assertAll(() -> {
+            for (int i = 0; i < expectedArray.length; i++) {
+                if (expectedArray[i] != actual.get(i)) {
+                    throw new RuntimeException();
+                }
+            }
+        });
     }
 
     @Test
@@ -799,18 +732,18 @@ class CyclicLinkedListTest {
         cyclicLinkedList1.add(5);
         cyclicLinkedList1.add(6);
 
-        cyclicLinkedList.addAll(3, cyclicLinkedList1);
+        cyclicLinkedList.addAll(1, cyclicLinkedList1);
 
-        CyclicLinkedList<Integer> actual = new CyclicLinkedList<>();
+        int[] expectedArray = {1, 4, 5, 6, 2, 3};
 
-        actual.add(1);
-        actual.add(2);
-        actual.add(3);
-        actual.add(4);
-        actual.add(5);
-        actual.add(6);
+        Assertions.assertAll(() -> {
+            for (int i = 0; i < expectedArray.length; i++) {
+                if (expectedArray[i] != cyclicLinkedList.get(i)) {
+                    throw new RuntimeException();
+                }
+            }
+        });
 
-        Assertions.assertEquals(cyclicLinkedList.toString(), actual.toString());
     }
 
     @Test
@@ -821,200 +754,14 @@ class CyclicLinkedListTest {
         list.add(1);
         list.addAll(0, list);
 
-        CyclicLinkedList<Integer> actual = new CyclicLinkedList<>();
-
-        actual.add(1);
-        actual.add(1);
-
-        Assertions.assertEquals(list.toString(), actual.toString());
-
-    }
-
-    @Test
-    @DisplayName("Проверка сортировки")
-    public void testSort() {
-        class Person {
-
-            private int age;
-            private String LastName;
-
-            public Person(int age, String lastName) {
-                this.age = age;
-                LastName = lastName;
-            }
-
-            public int getAge() {
-                return age;
-            }
-
-            public void setAge(int age) {
-                this.age = age;
-            }
-
-            public String getLastName() {
-                return LastName;
-            }
-
-            public void setLastName(String lastName) {
-                LastName = lastName;
-            }
-
-            @Override
-            public String toString() {
-                return "Person{" +
-                        "age=" + age +
-                        ", LastName=" + LastName +
-                        '}';
-            }
-        }
-
-        class ComparatorAge implements Comparator<Person> {
-            @Override
-            public int compare(Person o1, Person o2) {
-                if (o1.getAge() > o2.getAge()) {
-                    return 1;
-                } else if (o1.getAge() < o2.getAge()) {
-                    return -1;
+        int[] expectedArray = {1, 1};
+        Assertions.assertAll(() -> {
+            for (int i = 0; i < expectedArray.length; i++) {
+                if (expectedArray[i] != list.get(i)) {
+                    throw new RuntimeException();
                 }
-                return 0;
             }
-        }
-
-        CyclicLinkedList<Person> personCyclicLinkedList = new CyclicLinkedList<>();
-
-        personCyclicLinkedList.add(new Person(10, "Alex"));
-        personCyclicLinkedList.add(new Person(12, "Andrey"));
-        personCyclicLinkedList.add(new Person(9, "Valeriy"));
-
-        Comparator<Person> comparator = new ComparatorAge();
-
-        personCyclicLinkedList.sort(comparator);
-
-        Assertions.assertEquals("Node{data=Person{age=9, LastName=Valeriy}}Node{data=Person{age=10, LastName=Alex}}Node{data=Person{age=12, LastName=Andrey}}", personCyclicLinkedList.toString());
+        });
 
     }
-
-    @Test
-    @DisplayName("Проверка сортировки")
-    public void testSortEmptyList() {
-        class Person {
-
-            private int age;
-            private String LastName;
-
-            public Person(int age, String lastName) {
-                this.age = age;
-                LastName = lastName;
-            }
-
-            public int getAge() {
-                return age;
-            }
-
-            public void setAge(int age) {
-                this.age = age;
-            }
-
-            public String getLastName() {
-                return LastName;
-            }
-
-            public void setLastName(String lastName) {
-                LastName = lastName;
-            }
-
-            @Override
-            public String toString() {
-                return "Person{" +
-                        "age=" + age +
-                        ", LastName=" + LastName +
-                        '}';
-            }
-        }
-
-        class ComparatorAge implements Comparator<Person> {
-            @Override
-            public int compare(Person o1, Person o2) {
-                if (o1.getAge() > o2.getAge()) {
-                    return 1;
-                } else if (o1.getAge() < o2.getAge()) {
-                    return -1;
-                }
-                return 0;
-            }
-        }
-
-        CyclicLinkedList<Person> personCyclicLinkedList = new CyclicLinkedList<>();
-
-
-        Comparator<Person> comparator = new ComparatorAge();
-
-        personCyclicLinkedList.sort(comparator);
-
-        Assertions.assertEquals("List is empty", personCyclicLinkedList.toString());
-    }
-
-    @Test
-    @DisplayName("Проверка сортировки")
-    public void testSortListWithOneNode() {
-        class Person {
-
-            private int age;
-            private String LastName;
-
-            public Person(int age, String lastName) {
-                this.age = age;
-                LastName = lastName;
-            }
-
-            public int getAge() {
-                return age;
-            }
-
-            public void setAge(int age) {
-                this.age = age;
-            }
-
-            public String getLastName() {
-                return LastName;
-            }
-
-            public void setLastName(String lastName) {
-                LastName = lastName;
-            }
-
-            @Override
-            public String toString() {
-                return "Person{" +
-                        "age=" + age +
-                        ", LastName=" + LastName +
-                        '}';
-            }
-        }
-
-        class ComparatorAge implements Comparator<Person> {
-            @Override
-            public int compare(Person o1, Person o2) {
-                if (o1.getAge() > o2.getAge()) {
-                    return 1;
-                } else if (o1.getAge() < o2.getAge()) {
-                    return -1;
-                }
-                return 0;
-            }
-        }
-
-        CyclicLinkedList<Person> personCyclicLinkedList = new CyclicLinkedList<>();
-
-
-        Comparator<Person> comparator = new ComparatorAge();
-
-        personCyclicLinkedList.add(new Person(10, "Alex"));
-
-        personCyclicLinkedList.sort(comparator);
-
-        Assertions.assertEquals("Node{data=Person{age=10, LastName=Alex}}", personCyclicLinkedList.toString());
-    }
-
-
 }
