@@ -1,6 +1,5 @@
-import java.util.Arrays;
-import java.util.Comparator;
-import java.util.NoSuchElementException;
+
+import java.util.*;
 
 public class CyclicLinkedList<T> {
 
@@ -113,79 +112,21 @@ public class CyclicLinkedList<T> {
             throw new IndexOutOfBoundsException("index : " + index + " size: " + size);
         }
 
-        if (size == 0) {
-            return false;
+        CyclicLinkedList<T> copySource = new CyclicLinkedList<>();
+
+        for (int i = 0; i < cyclicLinkedList.size; i++) {
+            copySource.add(cyclicLinkedList.get(i));
         }
 
-        if (index == 0 && this != cyclicLinkedList) {
-            Node<T> current = cyclicLinkedList.head;
-            int i = 0;
+        int size = copySource.size();
 
-            do {
-                add(i, current.data);
-                i++;
-                current = current.next;
-            } while (current.next != cyclicLinkedList.head);
+        for (int i = 0, j = index; i < size; i++, j++) {
+            T item = copySource.get(i);
 
-            add(i, current.data);
-            return true;
+            add(j, item);
         }
+        return true;
 
-        if (index == size) {
-
-            Node<T> current = cyclicLinkedList.head;
-
-            int newIndex = size();
-            int borderSize = cyclicLinkedList.size;
-
-            for (int i = 0; i < borderSize; i++) {
-
-                add(newIndex, current.data);
-                current = current.next;
-                newIndex++;
-            }
-
-            return true;
-        }
-
-        Node<T> current = head;
-
-        if (this == cyclicLinkedList) {
-
-            if (size > 1) {
-                CyclicLinkedList<T> list = new CyclicLinkedList<>();
-
-                //Добавляем в лист элементы из исходного листа
-                for (int i = 0; i < size(); i++) {
-                    list.add(i, current.data);
-                    current = current.next;
-                }
-
-                int sizeInnerList = size();
-                for (int i = 0; i < sizeInnerList; i++) {
-                    add(index, list.get(i));
-                    index++;
-                }
-                return true;
-            } else {
-                add(index, current.data);
-                return true;
-            }
-
-        } else {
-            Node<T> cur = cyclicLinkedList.head;
-
-            int i = index;
-
-            do {
-                add(i, cur.data);
-                i++;
-                cur = cur.next;
-            } while (cur.next != cyclicLinkedList.head);
-
-            add(i, cur.data);
-            return true;
-        }
     }
 
     public T getLastElement() {
@@ -224,7 +165,7 @@ public class CyclicLinkedList<T> {
     public T get(int index) {
 
         if (index < 0 || index > size - 1) {
-            throw new IndexOutOfBoundsException("index: " + index + " size " + size);
+            throw new IndexOutOfBoundsException("index : " + index + " size : " + size);
         }
 
         Node<T> current = head;
@@ -252,33 +193,15 @@ public class CyclicLinkedList<T> {
         //Создаем массив. Поскольку лист не предоставляет рандомный доступ к его элементам
         T[] array = (T[]) new Object[size()];
 
+        for (int i = 0; i < size; i++) {
+            array[i] = get(i);
+        }
 
-        //В массив добавляем значение из листа
-        Node<T> current = head;
-        int i = 0;
-
-        do {
-            array[i] = current.data;
-            current = current.next;
-            i++;
-        } while (current.next != head);
-
-        array[i] = current.data;
-
-        //Отсортировали массив
         Arrays.sort(array, nameComparator);
 
-        Node<T> cur = head;
-        int j = 0;
-        do{
-
-            cur.data = array[j];
-            cur = cur.next;
-            j++;
-
-        }while (cur.next != head);
-
-        cur.data = array[j];
+        for (int i = 0; i < array.length; i++) {
+            set(i, array[i]);
+        }
     }
 
     public boolean hasNext() {
